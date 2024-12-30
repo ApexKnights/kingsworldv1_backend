@@ -19,7 +19,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: "https://kingsworldofficial.in/",
+    origin: "https://kingsworldofficial.in",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }))
