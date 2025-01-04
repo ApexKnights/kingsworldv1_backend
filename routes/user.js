@@ -121,5 +121,92 @@ router.put('/ad-money/:userId', IsAuthenticated, async (req, res) => {
 })
 
 
+router.put('/ad-money-main/:userId', IsAuthenticated, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { addmoney2 } = req.body
+        const addWallet = await User.findOneAndUpdate({ userId: userId }, {
+            $inc: {
+                wallet2: addmoney2
+            }
+        })
+        res.status(200).json({
+            success: true,
+            response: "Member wallet has been updated",
+            addWallet
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            err: error
+        })
+    }
+})
+// !Add Wallet Money
+
+router.put('/remove-ad-money/:userId', IsAuthenticated, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { addmoney } = req.body
+        const addWallet = await User.findOneAndUpdate({ userId: userId }, {
+            $inc: {
+                wallet: -addmoney
+            }
+        })
+        res.status(200).json({
+            success: true,
+            response: "Member wallet has been updated",
+            addWallet
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            err: error
+        })
+    }
+})
+
+
+router.put('/remove-ad-money-main/:userId', IsAuthenticated, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { addmoney2 } = req.body
+        const addWallet = await User.findOneAndUpdate({ userId: userId }, {
+            $inc: {
+                wallet2: -addmoney2
+            }
+        })
+        res.status(200).json({
+            success: true,
+            response: "Member wallet has been updated",
+            addWallet
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            err: error
+        })
+    }
+})
+
+
+router.get('/get-under-clients/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const finduser = await User.find({ under: userId });
+        res.status(200).json({
+            success: true,
+            finduser
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            err: error
+        })
+    }
+})
+
+
 
 export default router

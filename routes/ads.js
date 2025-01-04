@@ -82,7 +82,7 @@ router.get('/get-all-ads', IsAuthenticated, async (req, res) => {
 })
 
 
-
+// *******
 router.put("/approve-ad/:id/:userId", async (req, res) => {
     try {
         const { id } = req.params;
@@ -107,7 +107,7 @@ router.put("/approve-ad/:id/:userId", async (req, res) => {
             })
             const updateWallet = await findUser.updateOne({
                 $inc: {
-                    wallet: findAd.price
+                    wallet: findUser.wallet2 * 0.2 / 100
                 }
             })
             res.status(200).json({

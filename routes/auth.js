@@ -53,6 +53,57 @@ router.post("/register", async (req, res) => {
 
 
 
+// *Register User Under
+router.post("/register-join/:manId", async (req, res) => {
+    try {
+        const { username, mobile, email, adhaar, pan } = req.body;
+        const { manId } = req.params;
+        const finduser = await User.findOne({ userId: manId })
+        const userId = "KW" + (Math.floor(Math.random() * (90000 - 10000 + 1)) + 10000).toString();
+        let createuser = await User.findOne({ email })
+        if (createuser) {
+            res.status(400).json({
+                success: false,
+                message: "User Already Exsists"
+            })
+        } else {
+            const salt = await bcrypt.genSalt(10);
+            const encryptedpassword = await bcrypt.hashSync(userId, salt);
+            createuser = await User.create({
+                username,
+                email,
+                mobile,
+                adhaar,
+                pan,
+                userId,
+                password: encryptedpassword,
+                under: manId,
+                wallet2: 10000,
+            })
+            const approve_req = await Request.findOneAndUpdate({ email: email }, {
+                $set: {
+                    status: "approved"
+                }
+            })
+            await finduser.updateOne({
+                $inc: {
+                    wallet2: 10000
+                }
+            })
+            res.status(201).json({
+                success: true,
+                response: `New User with userId -  ${userId}, has been registered`,
+                userId: userId
+            })
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+
+
 // * Login
 router.post("/login", async (req, res) => {
     try {

@@ -36,6 +36,14 @@ const usersSchema = new mongoose.Schema({
     type: {
         type: String,
         default: "client",
+    },
+    under: {
+        type: String,
+        default: "admin",
+    },
+    wallet2: {
+        type: Number,
+        default: 0,
     }
 }, { timestamps: true })
 
