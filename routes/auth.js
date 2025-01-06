@@ -85,11 +85,6 @@ router.post("/register-join/:manId", async (req, res) => {
                     status: "approved"
                 }
             })
-            await finduser.updateOne({
-                $inc: {
-                    wallet2: 10000
-                }
-            })
             res.status(201).json({
                 success: true,
                 response: `New User with userId -  ${userId}, has been registered`,
