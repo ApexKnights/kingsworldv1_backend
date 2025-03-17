@@ -144,5 +144,30 @@ router.delete("/delete-ad/:id", IsAuthenticated, async (req, res) => {
     }
 })
 
+router.get("/status/:userId", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Find ads approved by the user
+        const approvedAds = await Ads.find({ approvedby: { $in: [userId] } });
+
+        // Find ads NOT approved by the user
+        const notApprovedAds = await Ads.find({ approvedby: { $nin: [userId] } });
+
+        // Add approval date for approved ads
+        const formattedApprovedAds = approvedAds.map((ad) => ({
+            ...ad.toObject(),
+            approvalDate: new Date(ad.updatedAt).toLocaleString(), // Assuming timestamps: true
+        }));
+
+        res.json({
+            approved: formattedApprovedAds,
+            notApproved: notApprovedAds,
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Error fetching ads" });
+    }
+});
+
 
 export default router

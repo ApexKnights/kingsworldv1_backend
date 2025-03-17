@@ -22,6 +22,23 @@ router.get('/get-users', IsAuthenticated, async (req, res) => {
 })
 
 
+router.get('/get-user/:userId', IsAuthenticated, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const getoneuser = await User.findOne({ userId: userId });
+        res.status(200).json({
+            success: true,
+            getoneuser
+        })
+    } catch (error) {
+        res.status(500)._construct.json({
+            success: false,
+            err: error,
+        })
+    }
+})
+
+
 
 router.put('/edit-profile/:userId', IsAuthenticated, async (req, res) => {
     try {
@@ -207,6 +224,79 @@ router.get('/get-under-clients/:userId', async (req, res) => {
     }
 })
 
+
+
+const getUserNetworkAB = async (userId) => {
+    const user = await User.findOne({ userId });
+
+    if (!user) return null;
+
+    // Fetch all users under this user
+    const downlineUsers = await User.find({ under: userId });
+
+    // Split downline into two groups: A and B
+    const groupA = downlineUsers.slice(0, Math.ceil(downlineUsers.length / 2)); // First half
+    const groupB = downlineUsers.slice(Math.ceil(downlineUsers.length / 2)); // Second half
+
+    // Recursively get their downlines
+    const downlineA = await Promise.all(groupA.map((u) => getUserNetworkAB(u.userId)));
+    const downlineB = await Promise.all(groupB.map((u) => getUserNetworkAB(u.userId)));
+
+    return {
+        ...user.toObject(),
+        A: downlineA, // Group A
+        B: downlineB, // Group B
+    };
+};
+
+// API route to get user network
+router.get("/user-network/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const network = await getUserNetworkAB(userId);
+        res.json(network);
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+
+const getTotalMoneyAB = async (userId) => {
+    const user = await User.findOne({ userId });
+
+    if (!user) return { total: 0, A: 0, B: 0 };
+
+    // Get all users under this user
+    const downlineUsers = await User.find({ under: userId });
+
+    // Split into A and B groups
+    const groupA = downlineUsers.slice(0, Math.ceil(downlineUsers.length / 2));
+    const groupB = downlineUsers.slice(Math.ceil(downlineUsers.length / 2));
+
+    // Recursively calculate total money for Group A and Group B
+    const A_total = await Promise.all(groupA.map((u) => getTotalMoneyAB(u.userId)));
+    const B_total = await Promise.all(groupB.map((u) => getTotalMoneyAB(u.userId)));
+
+    const A_money = A_total.reduce((sum, val) => sum + val.total, 0);
+    const B_money = B_total.reduce((sum, val) => sum + val.total, 0);
+
+    return {
+        total: user.wallet2 + A_money + B_money,  // Total money including user + downlines
+        A: A_money,  // Total money from Group A
+        B: B_money   // Total money from Group B
+    };
+};
+// API route to get total money in a user's network
+router.get("/user-total-money/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const moneyData = await getTotalMoneyAB(userId);
+        res.json({ userId, ...moneyData });
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 
 export default router
